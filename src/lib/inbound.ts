@@ -53,7 +53,7 @@ function pick(job: Job): Omit<InboundHit, "id"> {
   };
 }
 
-/** Studio cash on the wire: invoices most of the time, bills the rest. */
+/** Optional demo feed only. Off by default — these jobs are fictional. */
 export function nextCashEvent(): Omit<InboundHit, "id"> {
   const pool = Math.random() < 0.7 ? IN : OUT;
   return pick(pool[Math.floor(Math.random() * pool.length)]!);

@@ -52,11 +52,96 @@ const LIVING_NOTES = [
   "Reference books",
 ];
 
+export type OpenItem = {
+  id: string;
+  title: string;
+  body: string;
+};
+
 /**
- * A six-month freelance studio ledger ending at `now`, shaped so the current
- * month looks alive and the year has a story (June dip, July peak).
+ * Known but unbooked. Pitches, unpaid invoices, and PDFs whose amount
+ * is not in the email body. Nothing here is cash.
  */
-export function buildSeed(now = new Date()): Entry[] {
+export const OPEN_ITEMS: OpenItem[] = [
+  {
+    id: "pet-pulse",
+    title: "Pet Pulse Clinic Starter Kit",
+    body: "$497 pitched to Gungahlin Vet and Canberra Vet. Not closed. Not booked.",
+  },
+  {
+    id: "mantra",
+    title: "Mantra on Northbourne",
+    body: "Tax invoice arrived 28 Aug. Amount is only in the PDF, so it is not booked.",
+  },
+  {
+    id: "suncorp-17",
+    title: "Suncorp remittance 17 Aug",
+    body: "Payment 6200499034 is a PDF-only remittance. Amount unknown. Not booked.",
+  },
+];
+
+/**
+ * Settled AUD cash for Sausage Therapy, taken from receipts and remittances
+ * in Emily's inbox. Authorisations, declined charges, unpaid bills, and
+ * pitches are not here.
+ */
+export function buildSeed(): Entry[] {
+  return [
+    {
+      id: "real-telstra",
+      date: "2026-08-02",
+      type: "out",
+      amountCents: 18000,
+      category: "Studio",
+      note: "Telstra — PayPal receipt",
+    },
+    {
+      id: "real-godaddy",
+      date: "2026-08-11",
+      type: "out",
+      amountCents: 908,
+      category: "Software",
+      note: "GoDaddy — PayPal receipt",
+    },
+    {
+      id: "real-uber-20",
+      date: "2026-08-20",
+      type: "out",
+      amountCents: 4931,
+      category: "Travel",
+      note: "Uber — PayPal payment processed",
+    },
+    {
+      id: "real-suncorp-28",
+      date: "2026-08-28",
+      type: "in",
+      amountCents: 400000,
+      category: "Insurance",
+      note: "Suncorp remittance 6200527031 — temp accommodation",
+    },
+    {
+      id: "real-vercel",
+      date: "2026-08-29",
+      type: "out",
+      amountCents: 2200,
+      category: "Software",
+      note: "Vercel Pro — receipt 2144-6126",
+    },
+    {
+      id: "real-netflix",
+      date: "2026-08-29",
+      type: "out",
+      amountCents: 999,
+      category: "Living",
+      note: "Netflix Australia — PayPal",
+    },
+  ];
+}
+
+/**
+ * Six-month fictional studio ledger. Optional demo only — Restore sample.
+ */
+export function buildSample(now = new Date()): Entry[] {
   const rng = mulberry32(20260829);
   const entries: Entry[] = [];
   let n = 0;
@@ -195,7 +280,6 @@ export function buildSeed(now = new Date()): Entry[] {
     }
   }
 
-  // Guarantee a handful of current-month rows so the hero is never empty.
   const thisMonth = isoDate(now).slice(0, 7);
   const hasCurrentIn = entries.some(
     (e) => e.date.startsWith(thisMonth) && e.type === "in" && e.category === "Projects",

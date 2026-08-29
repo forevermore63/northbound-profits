@@ -1,6 +1,6 @@
 # Profits
 
-Live take-home tracker for a studio ledger. Money in and out lands on the wire. The hero is real profit after a tax set-aside. Everything stays on-device.
+Private take-home ledger for Sausage Therapy. Default numbers are settled AUD receipts from inbox — insurance remittance is cash, not profit. Demo feed is off.
 
 ```
 npm install

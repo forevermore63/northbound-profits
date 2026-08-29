@@ -5,6 +5,7 @@ export const INCOME_CATEGORIES = [
   "Retainers",
   "Projects",
   "Product",
+  "Insurance",
   "Other income",
 ] as const;
 
@@ -130,18 +131,22 @@ export type Totals = {
   count: number;
   taxPaid: number;
   operating: number;
+  insurance: number;
 };
 
 export function totals(entries: Entry[], range: Range): Totals {
   let revenue = 0;
   let spend = 0;
   let taxPaid = 0;
+  let insurance = 0;
   let count = 0;
   for (const e of entries) {
     if (!inRange(e.date, range)) continue;
     count += 1;
-    if (e.type === "in") revenue += e.amountCents;
-    else {
+    if (e.type === "in") {
+      revenue += e.amountCents;
+      if (e.category === "Insurance") insurance += e.amountCents;
+    } else {
       spend += e.amountCents;
       if (e.category === "Tax") taxPaid += e.amountCents;
     }
@@ -149,7 +154,7 @@ export function totals(entries: Entry[], range: Range): Totals {
   const profit = revenue - spend;
   const operating = spend - taxPaid;
   const margin = revenue === 0 ? 0 : profit / revenue;
-  return { revenue, spend, profit, margin, count, taxPaid, operating };
+  return { revenue, spend, profit, margin, count, taxPaid, operating, insurance };
 }
 
 export type TakeHome = {
@@ -160,13 +165,13 @@ export type TakeHome = {
   rate: number;
 };
 
-/** Take-home after a tax set-aside on operating profit. Tax already paid is not double-counted. */
+/** Take-home after a tax set-aside on operating profit. Insurance cash and tax already paid are not treated as profit. */
 export function takeHome(t: Totals, taxPercent: number): TakeHome {
   const rate = Math.min(80, Math.max(0, taxPercent)) / 100;
-  const taxable = Math.max(0, t.revenue - t.operating);
+  const taxable = Math.max(0, t.revenue - t.insurance - t.operating);
   const due = Math.round(taxable * rate);
   const aside = Math.max(0, due - t.taxPaid);
-  return { taxable, due, aside, real: t.profit - aside, rate };
+  return { taxable, due, aside, real: t.profit - t.insurance - aside, rate };
 }
 
 export type WeekPoint = {
@@ -329,6 +334,15 @@ export function insightsFor(
       kicker: "Real profit",
       title: `${taxPercent}% still to set aside`,
       body: `${formatMoney(keep.aside, currency, { digits: 0 })} reserved so the figure above is actually yours.`,
+    });
+  }
+
+  if (current.insurance > 0 && list.length < 3) {
+    list.push({
+      id: "insurance",
+      kicker: "Not profit",
+      title: "Insurance cash is off this figure",
+      body: `${formatMoney(current.insurance, currency, { digits: 0 })} landed as remittance, not take-home.`,
     });
   }
 

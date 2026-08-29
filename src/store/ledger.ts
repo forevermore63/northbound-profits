@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { Currency } from "@/lib/money";
 import type { Entry } from "@/lib/ledger";
-import { buildSeed, defaultCategory } from "@/lib/seed";
+import { buildSample, buildSeed, defaultCategory } from "@/lib/seed";
 
 type LedgerState = {
   entries: Entry[];
@@ -22,6 +22,7 @@ type LedgerState = {
   updateEntry: (id: string, patch: Partial<Omit<Entry, "id">>) => void;
   removeEntry: (id: string) => void;
   restoreSample: () => void;
+  restoreReal: () => void;
   clearAll: () => void;
 };
 
@@ -36,10 +37,10 @@ export const useLedger = create<LedgerState>()(
   persist(
     (set, get) => ({
       entries: buildSeed(),
-      currency: "USD",
-      monthlyGoalCents: 1200000,
-      businessName: "Northbound Studio",
-      usingSample: true,
+      currency: "AUD",
+      monthlyGoalCents: 500000,
+      businessName: "Sausage Therapy",
+      usingSample: false,
       cleared: false,
       taxPercent: 25,
       seedIfEmpty: () => {
@@ -47,8 +48,9 @@ export const useLedger = create<LedgerState>()(
         if (s.entries.length === 0 && !s.cleared) {
           set({
             entries: buildSeed(),
-            usingSample: true,
-            businessName: s.businessName || "Northbound Studio",
+            usingSample: false,
+            businessName: s.businessName || "Sausage Therapy",
+            currency: s.currency || "AUD",
           });
         }
       },
@@ -94,22 +96,33 @@ export const useLedger = create<LedgerState>()(
         })),
       restoreSample: () =>
         set({
-          entries: buildSeed(),
+          entries: buildSample(),
           usingSample: true,
           cleared: false,
           businessName: "Northbound Studio",
+          currency: "USD",
           monthlyGoalCents: 1200000,
+        }),
+      restoreReal: () =>
+        set({
+          entries: buildSeed(),
+          usingSample: false,
+          cleared: false,
+          businessName: "Sausage Therapy",
+          currency: "AUD",
+          monthlyGoalCents: 500000,
+          taxPercent: 25,
         }),
       clearAll: () =>
         set({
           entries: [],
           usingSample: false,
           cleared: true,
-          businessName: "My studio",
+          businessName: "Sausage Therapy",
         }),
     }),
     {
-      name: "profits-ledger-v1",
+      name: "profits-ledger-v2",
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({
         entries: s.entries,
@@ -128,4 +141,3 @@ export const useLedger = create<LedgerState>()(
 );
 
 export { defaultCategory };
-

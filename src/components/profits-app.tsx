@@ -62,6 +62,7 @@ import {
 } from "@/lib/ledger";
 import { useLedger } from "@/store/ledger";
 import { nextCashEvent, type InboundHit } from "@/lib/inbound";
+import { OPEN_ITEMS } from "@/lib/seed";
 
 const PERIODS: Period[] = ["month", "quarter", "year", "all"];
 const PERIOD_CHIP: Record<Period, string> = {
@@ -89,6 +90,7 @@ export function ProfitsApp() {
   const setTaxPercent = useLedger((s) => s.setTaxPercent);
   const setBusinessName = useLedger((s) => s.setBusinessName);
   const restoreSample = useLedger((s) => s.restoreSample);
+  const restoreReal = useLedger((s) => s.restoreReal);
   const clearAll = useLedger((s) => s.clearAll);
   const addLiveEntry = useLedger((s) => s.addLiveEntry);
 
@@ -103,7 +105,7 @@ export function ProfitsApp() {
   const [nameDraft, setNameDraft] = useState(businessName);
   const [clearOpen, setClearOpen] = useState(false);
   const [restoreOpen, setRestoreOpen] = useState(false);
-  const [live, setLive] = useState(true);
+  const [live, setLive] = useState(false);
   const [landed, setLanded] = useState<InboundHit[]>([]);
   const [freshIds, setFreshIds] = useState<string[]>([]);
   const liveRef = useRef(live);
@@ -236,7 +238,7 @@ export function ProfitsApp() {
             )}
             {usingSample && (
               <span className="hidden rounded-full bg-foreground/5 px-2.5 py-1 text-xs text-muted-foreground md:inline">
-                Sample ledger
+                Demo sample
               </span>
             )}
             <button
@@ -257,7 +259,7 @@ export function ProfitsApp() {
                 )}
                 aria-hidden
               />
-              Live
+              Demo
             </button>
           </div>
 
@@ -314,8 +316,21 @@ export function ProfitsApp() {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setRestoreOpen(true)}>
                 <RotateCcw className="size-4" />
-                Restore sample
+                Load demo sample
               </DropdownMenuItem>
+              {usingSample && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    restoreReal();
+                    setLanded([]);
+                    setFreshIds([]);
+                    toast.success("Settled receipts reloaded");
+                  }}
+                >
+                  <RotateCcw className="size-4" />
+                  Reload receipts
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 className="text-loss focus:text-loss"
                 onClick={() => setClearOpen(true)}
@@ -365,16 +380,18 @@ export function ProfitsApp() {
                     {Math.abs(Math.round(delta * 100))}% vs last period
                   </span>
                 ) : (
-                  <span>after tax set-aside</span>
+                  <span>operating profit after tax set-aside</span>
                 )}
               </p>
               <p className="mt-1 text-xs text-subtle">
                 Booked {formatMoney(current.profit, currency, { digits: 0 })}
-                {keep.aside > 0
-                  ? ` · ${taxPercent}% still aside ${formatMoney(keep.aside, currency, { digits: 0 })}`
-                  : taxPercent > 0
-                    ? ` · ${taxPercent}% tax already covered`
-                    : ""}
+                {current.insurance > 0
+                  ? ` · insurance ${formatMoney(current.insurance, currency, { digits: 0 })} kept off take-home`
+                  : keep.aside > 0
+                    ? ` · ${taxPercent}% still aside ${formatMoney(keep.aside, currency, { digits: 0 })}`
+                    : taxPercent > 0
+                      ? ` · ${taxPercent}% tax already covered`
+                      : ""}
               </p>
             </div>
 
@@ -423,7 +440,7 @@ export function ProfitsApp() {
           {live && landed.length > 0 && (
             <div>
               <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                On the wire
+                Demo feed
               </p>
               <LiveTape hits={landed} currency={currency} />
             </div>
@@ -457,6 +474,22 @@ export function ProfitsApp() {
           </section>
         )}
 
+        {!usingSample && (
+          <section>
+            <p className="mb-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              Not booked
+            </p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {OPEN_ITEMS.map((item) => (
+                <article key={item.id} className="rounded-xl bg-surface px-4 py-4">
+                  <h3 className="font-display text-lg leading-snug">{item.title}</h3>
+                  <p className="mt-1.5 text-sm text-muted-foreground">{item.body}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(16rem,0.8fr)] lg:gap-12">
           <LedgerList
             entries={rangedEntries}
@@ -473,7 +506,7 @@ export function ProfitsApp() {
         </div>
 
         <p className="pb-6 text-center text-xs text-subtle">
-          Figures stay on this device. Nothing is uploaded.
+          Settled receipts only. Pitches and unpaid bills stay off the figure. Nothing is uploaded.
         </p>
       </main>
 
@@ -584,7 +617,7 @@ export function ProfitsApp() {
             <AlertDialogTitle>Clear the ledger?</AlertDialogTitle>
             <AlertDialogDescription>
               Every line will be removed from this device. This cannot be undone,
-              except by restoring the sample.
+              except by reloading settled receipts or the demo sample.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -607,9 +640,9 @@ export function ProfitsApp() {
       <AlertDialog open={restoreOpen} onOpenChange={setRestoreOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Restore the sample studio?</AlertDialogTitle>
+            <AlertDialogTitle>Load the demo sample?</AlertDialogTitle>
             <AlertDialogDescription>
-              Replaces the current ledger with Northbound Studio’s six-month sample.
+              Replaces the current ledger with Northbound Studio’s fictional six-month sample. Your settled receipts can be reloaded after.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -619,10 +652,10 @@ export function ProfitsApp() {
                 restoreSample();
                 setLanded([]);
                 setFreshIds([]);
-                toast.success("Sample ledger restored");
+                toast.success("Demo sample loaded");
               }}
             >
-              Restore
+              Load demo
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
