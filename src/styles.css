@@ -1,0 +1,196 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  --color-bg: #0b0b0a;
+  --color-surface: #141412;
+  --color-surface-2: #1c1c18;
+  --color-fg: #f2efe6;
+  --color-muted: #9c9789;
+  --color-subtle: #6e6a60;
+  --color-accent: #b7c4a8;
+  --color-accent-fg: #0b0b0a;
+  --color-loss: #c9897a;
+  --color-gain: #b7c4a8;
+
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-fg);
+  --color-card: var(--color-surface);
+  --color-card-foreground: var(--color-fg);
+  --color-popover: var(--color-surface-2);
+  --color-popover-foreground: var(--color-fg);
+  --color-primary: var(--color-accent);
+  --color-primary-foreground: var(--color-accent-fg);
+  --color-secondary: var(--color-surface-2);
+  --color-secondary-foreground: var(--color-fg);
+  --color-muted-foreground: var(--color-muted);
+  --color-accent-foreground: var(--color-accent-fg);
+  --color-destructive: var(--color-loss);
+  --color-border: color-mix(in oklab, var(--color-fg) 12%, transparent);
+  --color-input: color-mix(in oklab, var(--color-fg) 14%, transparent);
+  --color-ring: var(--color-accent);
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius: 12px;
+
+  --font-sans: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --shadow-border: 0 0 0 1px color-mix(in oklab, var(--color-fg) 10%, transparent);
+  --shadow-border-hover: 0 0 0 1px color-mix(in oklab, var(--color-fg) 16%, transparent);
+  --shadow-float:
+    0 0 0 1px color-mix(in oklab, var(--color-fg) 10%, transparent),
+    0 24px 48px -16px rgb(0 0 0 / 0.55);
+
+  --motion-stagger: 40ms;
+  --motion-micro: 80ms;
+  --motion-quick: 150ms;
+  --motion-fast: 250ms;
+  --motion-medium: 350ms;
+  --motion-slow: 400ms;
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --motion-scale-modal: 0.96;
+  --motion-scale-press: 0.98;
+  --motion-y-micro: 4px;
+  --text-display: clamp(2.75rem, 1.2rem + 7vw, 4.75rem);
+  --tracking-display: -0.03em;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--color-bg);
+    color: var(--color-fg);
+    color-scheme: dark;
+  }
+
+  body {
+    min-height: 100dvh;
+    background-color: var(--color-bg);
+    background-image: linear-gradient(
+      180deg,
+      #10100e 0%,
+      var(--color-bg) 32%
+    );
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  * {
+    border-color: var(--color-border);
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-accent) 35%, transparent);
+    color: var(--color-fg);
+  }
+}
+
+@keyframes live-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+}
+
+@keyframes land-float {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  18% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes tape-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ledger-land {
+  from {
+    background-color: color-mix(in oklab, var(--color-gain) 16%, transparent);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+@keyframes ledger-land-out {
+  from {
+    background-color: color-mix(in oklab, var(--color-loss) 16%, transparent);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+.live-dot {
+  animation: live-dot 1.6s var(--ease-out) infinite;
+}
+
+.land-float {
+  animation: land-float 1.8s var(--ease-smooth-out) forwards;
+}
+
+.tape-in {
+  animation: tape-in var(--motion-fast) var(--ease-smooth-out) both;
+}
+
+.ledger-land {
+  animation: ledger-land 1.8s var(--ease-smooth-out) both;
+}
+
+.ledger-land-out {
+  animation: ledger-land-out 1.8s var(--ease-smooth-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
